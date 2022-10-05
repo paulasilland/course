@@ -1,6 +1,6 @@
 # 102377 - SO
 
-<img align="left" width="100" height="100" src="https://user-images.githubusercontent.com/61190134/76793662-b6b8bd00-67c5-11ea-83b2-efcc9ed462fc.png">
+<img align="left" width="100" height="100" src="https://user-images.githubusercontent.com/61190134/194071099-ebfa0b77-4f84-41eb-b485-e214d5ae8df0.png">
 
 *Instructor*: [Jordi Mateo Fornés](http:jordimateofornes.com)
 
