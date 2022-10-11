@@ -28,7 +28,7 @@ següent enter és el 448. Definirem el 449:
 vim /arch/arm/tools/syscall.tbl
 
 # Afegiu el contingut següent
-# Final del fitxer salteu la part de x32, i aneu al final de common
+# Final del fitxer _> al final de common
 449 common getdummymul sys_getdummymul
 ```
 
