@@ -59,7 +59,7 @@ SYSCALL_DEFINE3(getdummymul,int, num1, int ,num2, int*, resultat){
 ### Pas 3. Matching amb unistd.h
 
 ```sh
-vim /root/linux-5.15.19/include/uapi/asm-generic/unistd.h
+vim include/uapi/asm-generic/unistd.h
 ```
 ```c
 //Editeu la línia augmentant en 1 el valor que tingueu. En el meu cas 449 -> 450:
