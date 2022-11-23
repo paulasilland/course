@@ -11,7 +11,7 @@
 
 #define READ_END    0    /* index pipe lectura */
 #define WRITE_END   1    /* index pipe escritura */
-#define EXIT_FAILURE 1
+#define EXIT_FAILURE 1     
 
 #define FILE_NAME  "user.txt"   /* nom del fitxer */
 
@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     
     pipe(fd1);                  /* es crea el pipe */
     
-    pid = fork();     
+    pid = fork();    
 
     if(pid == 0)                /* fill 1 */
     {              
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
         dup2(fd1[WRITE_END], STDOUT_FILENO); 
         close(fd1[WRITE_END]);
         
-        execlp("/bin/grep", "grep", "$(whoami)", NULL);
+        execlp("/bin/grep", "grep", NULL);
     }
     else if (pid == -1){
         perror("Error fork");
