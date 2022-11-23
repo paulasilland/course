@@ -13,11 +13,11 @@
 #define WRITE_END   1    /* index pipe escritura */
 #define EXIT_FAILURE 1     
 
-#define FILE_NAME  "user.txt"   /* nom del fitxer */
+#define OUTPUT_FILE_NAME  "user.txt"   /* nom del fitxer */
+#define INPUT_FILE_NAME  "/etc/passwd"   /* nom del fitxer */
 
-int main(int argc, char* argv[])   
-{
-    int fd1[2],fd2;
+int main(int argc, char* argv[]) {
+    int fd1[2];
     int status, pid;
     
     pipe(fd1);                  /* es crea el pipe */
@@ -25,10 +25,13 @@ int main(int argc, char* argv[])
     pid = fork();    
 
     if(pid == 0)                /* fill 1 */
-    {              
+    {
+        FILE* outputFile = fopen(OUTPUT_FILE_NAME, "w");
+        FILE* inputFile = fopen(INPUT_FILE_NAME, "r");
         close(fd1[READ_END]);   /* tanquem el fd1[0] */
         
-        dup2(fd1[WRITE_END], STDOUT_FILENO); 
+        dup2(fileno(outputFile), STDOUT_FILENO); 
+        dup2(fileno(inputFile), STDIN_FILENO); 
         close(fd1[WRITE_END]);
         
         execlp("/bin/grep", "grep", NULL);
@@ -51,21 +54,18 @@ int main(int argc, char* argv[])
 		   		   
           dup2(fd2, STDOUT_FILENO);		   
             
-          execlp("/usr/etc/passwd", NULL);
+          execlp( "whoami", NULL);
        }
        else if (pid == -1){
         perror("Error fork");
         return EXIT_FAILURE;
     }
-       else /* pare */
-       {
-            close(fd1[READ_END]);    
-       }                
-     }
-    
+
    /* fem un wait per a que acabin els fills */
     wait(&status);   
-    wait(&status);    
+    wait(&status); 
+    wait(&status);   
     
     return 0;    
+    }
 }
