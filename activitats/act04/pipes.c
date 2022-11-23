@@ -19,7 +19,7 @@
 int main(int argc, char* argv[]) {
     int fd1[2];
     int status, pid;
-    
+
     pipe(fd1);                  /* es crea el pipe */
     
     pid = fork();    
@@ -48,14 +48,20 @@ int main(int argc, char* argv[]) {
 		
        if(pid == 0)               /* fill 2 */
        {     
-          fd2 = open(FILE_NAME, O_WRONLY);
-          dup2(fd1[READ_END], STDIN_FILENO);
-          close(fd1[READ_END]);
-		   		   
-          dup2(fd2, STDOUT_FILENO);		   
-            
-          execlp( "whoami", NULL);
-       }
+        close(fd1[WRITE_END]);
+        char * fd = malloc(5*sizeof(char));
+        read(fd1[READ_END], fd, 5);
+        close(fd1[READ_END]);
+        execlp("/usr/bin/whoami", "whoami", NULL);
+        }
+
+
+        //fd2 = open(FILE_NAME, O_WRONLY);
+        //dup2(fd1[READ_END], STDIN_FILENO);
+        //close(fd1[READ_END]);
+		//dup2(fd2, STDOUT_FILENO);		   
+        
+
        else if (pid == -1){
         perror("Error fork");
         return EXIT_FAILURE;
@@ -64,8 +70,9 @@ int main(int argc, char* argv[]) {
    /* fem un wait per a que acabin els fills */
     wait(&status);   
     wait(&status); 
-    wait(&status);   
-    
-    return 0;    
-    }
 }
+
+    close(fd1[READ_END]);       /* tanquem el fd1[0] */
+    return 0;    
+}
+
