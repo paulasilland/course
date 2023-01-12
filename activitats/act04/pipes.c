@@ -13,66 +13,92 @@
 #define WRITE_END   1    /* index pipe escritura */
 #define EXIT_FAILURE 1     
 
-#define OUTPUT_FILE_NAME  "user.txt"   /* nom del fitxer */
-#define INPUT_FILE_NAME  "/etc/passwd"   /* nom del fitxer */
 
 int main(int argc, char* argv[]) {
-    int fd1[2];
+    int fd1[2]; fd2[2];
+    FILE *fp; 
     int status, pid;
 
-    pipe(fd1);                  /* es crea el pipe */
-    
-    pid = fork();    
+    char *p1[]= {"grep", "paula", NULL};
+    char *p2[]= {"whoami", NULL};
+    char *p3[]= {"cat", "/etc/passwd", NULL};
 
-    if(pid == 0)                /* fill 1 */
-    {
-        FILE* outputFile = fopen(OUTPUT_FILE_NAME, "w");
-        FILE* inputFile = fopen(INPUT_FILE_NAME, "r");
-        close(fd1[READ_END]);   /* tanquem el fd1[0] */
-        
-        dup2(fileno(outputFile), STDOUT_FILENO); 
-        dup2(fileno(inputFile), STDIN_FILENO); 
-        close(fd1[WRITE_END]);
-        
-        execlp("/bin/grep", "grep", NULL);
-    }
-    else if (pid == -1){
-        perror("Error fork");
+    //Creem el pipe i comprovem que no hi ha hagut errors
+
+    if (pipe(fd1) == -1) {
+        perror("Error pipe");
         return EXIT_FAILURE;
     }
-    else                          /* pare */
-    { 
-        close(fd1[WRITE_END]);    
-        
-        pid = fork();
-		
-       if(pid == 0)               /* fill 2 */
-       {     
-        close(fd1[WRITE_END]);
-        char * fd = malloc(5*sizeof(char));
-        read(fd1[READ_END], fd, 5);
-        close(fd1[READ_END]);
-        execlp("/usr/bin/whoami", "whoami", NULL);
-        }
 
+    if (pipe(fd2) == -1) {
+        perror("Error pipe");
+        return EXIT_FAILURE;
+    }
 
-        //fd2 = open(FILE_NAME, O_WRONLY);
-        //dup2(fd1[READ_END], STDIN_FILENO);
-        //close(fd1[READ_END]);
-		//dup2(fd2, STDOUT_FILENO);		   
-        
+    //creem 3 pids, un per cada fill i comprovem que no hi ha hagut errors
+    pid_t pid1, pid2, pid3;
 
-       else if (pid == -1){
+    //Per al whoami:
+    pid1 = fork();
+    if(pid1 == -1){
         perror("Error fork");
         return EXIT_FAILURE;
     }
 
-   /* fem un wait per a que acabin els fills */
-    wait(&status);   
-    wait(&status); 
-}
+    else if(pid1 == 0){
+        //Fill 1
+        //El fill 1 llegeixi el whoami i escrigui el resultat al fitxer user.txt (stdout)
+        dup2(fd2[1], STDOUT_FILENO);
+        close(fd2[0]);
+        close(fd2[1]);
+        execvp(p2[0], p2); //Executa whoami
 
-    close(fd1[READ_END]);       /* tanquem el fd1[0] */
-    return 0;    
-}
+    }
+    else{
+        waitpid(pid1, 0, 0);
+        p1[1] = malloc(sizeof(fd2[0]));
+        close(fd2[0]);
+        close(fd2[1]);
+    }
 
+    //Per al cat:
+    pid2 = fork();
+    if(pid2 == -1){
+        perror("Error fork");
+        return EXIT_FAILURE;
+    }
+
+    else if(pid2 == 0){
+        //Fill 2
+        //El fill 2 llegeixi el cat i escrigui el resultat al fitxer user.txt (stdout)
+        dup2(fd1[1], STDOUT_FILENO);
+        close(fd1[0]);
+        close(fd1[1]);
+        execvp(p3[0], p3); //Executa cat
+
+    }
+
+    //Per al grep:
+    pid3 = fork();
+    if(pid3 == -1){
+        perror("Error fork");
+        return EXIT_FAILURE;
+    }
+
+    else if(pid3 == 0){
+        //Fill 3
+        //El fill 3 llegeixi el grep i escrigui el resultat al fitxer user.txt (stdout)
+        dup2(fd1[0], STDIN_FILENO); //Llegeix de l'entrada estàndard
+        fp = fopen("user.txt", "w");
+        dup2(fileno(fp), STDOUT_FILENO); //Escriu a l'arxiu
+        close(fd1[0]);
+        close(fd1[1]);
+        execvp(p1[0], p1); //Executa grep
+
+    }
+   
+    waitpid(pid1, 0, 0);
+    waitpid(pid2, 0, 0);
+    waitpid(pid3, 0, 0);
+    return 1; //Finalització correcta
+}
